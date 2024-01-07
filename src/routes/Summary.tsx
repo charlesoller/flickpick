@@ -1,18 +1,24 @@
+// Functions
+import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
+import { useSpring, animated, useSpringRef } from '@react-spring/web'
 import { parseMovieInfo } from "../utils/helper"
 import { openai } from "../utils/clients"
-import { useState, useEffect } from "react"
+
+// Components
 import { Slider } from "../components/Slider"
 
-import { useSpring, animated, useSpringRef } from '@react-spring/web'
-
+// CSS
 import styles from '../styles.module.css'
+
+// Types
+import { Movie } from "../utils/types"
 
 export default function Summary(){
     const location = useLocation()
     const { liked } = location.state
     const [ response, setResponse ] = useState("")
-    const moviesDescription = liked.map(movie => parseMovieInfo(movie).description).join("\n#####\n")  //This takes the liked movies, parses the information formatted into a string, then joins them on separate lines
+    const moviesDescription = liked.map((movie: Movie) => parseMovieInfo(movie).description).join("\n#####\n")  //This takes the liked movies, parses the information formatted into a string, then joins them on separate lines
 
     const startFadeIn = useSpringRef()
     const fadeIn = useSpring({
@@ -20,6 +26,12 @@ export default function Summary(){
         to: { opacity: 1 },
         config: { tension: 80, friction: 60, mass: 2 },
         ref: startFadeIn
+    })
+
+    const instantFadeIn = useSpring({
+        from: { opacity: 0 },
+        to: { opacity: 1 },
+        config: { tension: 80, friction: 60, mass: 2 },
     })
 
     useEffect(() => {
@@ -43,19 +55,18 @@ export default function Summary(){
             startFadeIn.start()
         }
 
-        // getAiSummary(moviesDescription)
+        getAiSummary(moviesDescription)
     }, [])
 
     return (
         <main className="mt-20 mx-auto flex flex-col w-4/5">
-            <h1 className="text-5xl font-bold bg-gradient-to-b from-white/80 to-white/30 inline-block text-transparent bg-clip-text drop-shadow-xl mb-5" style={fadeIn}>Your Summary</h1>
+            <animated.h1 className="text-5xl font-bold bg-gradient-to-b from-white/80 to-white/30 inline-block text-transparent bg-clip-text drop-shadow-xl mb-5" style={instantFadeIn}>Your Summary</animated.h1>
             <p className="text-lg text-white/90 sm:text-xl">{response}</p>
 
             <animated.section className={styles.main} style={fadeIn}>
                 <Slider items={liked} width={window.innerWidth > 640 ? 350 : 250} visible={3}>
-                {(movie, i) => (
+                {(movie: Movie) => (
                     <div className={`${styles.content} sm:mt-8`}>
-                        {/* <div className={styles.marker}>{String(i).padStart(2, '0')}</div> */}
                         <animated.div className={styles.image} style={{ backgroundImage: `url(https://image.tmdb.org/t/p/original${movie.poster_path})` }} />
                     </div>
                 )}

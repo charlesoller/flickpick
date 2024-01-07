@@ -55,12 +55,12 @@ export const getCurrentMovieIds = async() => {
     }
 }
 
-// Fetches 100 most popular movies from TMDB, and embeds/uploads to Supabase if they aren't already there.
+// Runs on first load. Fetches 100 most popular movies from TMDB, and embeds/uploads to Supabase if they aren't already there.
 // Then fetches entire list of movies from Supabase, and returns the movies and the number of new movies added.
 export const fetchAndLoadNewMovies = async() => {
     const movieArr = await loadMovies();    // Loads the 100 current most popular movies from TMDB
     const currentMovieIds = await getCurrentMovieIds();     // List of movie IDs already in Supabase
-    const count = 0;      // Tracks the number of new movies added
+    let count = 0;      // Tracks the number of new movies added
 
     // This part is for storing any new movies that may not already be in Supabase
     movieArr.forEach(async (movie) => {

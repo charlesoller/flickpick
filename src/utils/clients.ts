@@ -1,3 +1,4 @@
+// Functions
 import { createClient } from "@supabase/supabase-js";
 import { HfInference } from '@huggingface/inference'
 import { MovieDb } from "moviedb-promise"

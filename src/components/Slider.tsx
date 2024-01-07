@@ -1,7 +1,12 @@
-import React, { useRef, useCallback } from 'react'
+// @ts-nocheck
+// This logic comes from a use-gesture / react-spring example. I should revisit this and add types as it will require deconstructing the function to understand what is happening better.
+
+// Functions
+import { useRef, useCallback } from 'react'
 import { useGesture } from '@use-gesture/react'
 import { useSprings, a } from '@react-spring/web'
 
+// CSS
 const styles = {
   container: { position: 'relative', height: '100%', width: '100%', touchAction: 'none' },
   item: { position: 'absolute', height: '100%', willChange: 'transform' },
@@ -15,12 +20,10 @@ const styles = {
  * @param {number} width - fixed item with
  * @param {number} visible - number of items that muste be visible on screen
  */
-export function Slider({ items, width = 600, visible = 4, style, children }) {
-  const MODIFIER = 1
-
+export function Slider({ items, width = 600, visible = 4, style = {}, children }) {
   const idx = useCallback((x, l = items.length) => (x < 0 ? x + l : x) % l, [items])
   const getPos = useCallback((i, firstVis, firstVisIdx) => idx(i - firstVis + firstVisIdx), [idx])
-  const [springs, api] = useSprings(items.length, i => ({ x: (i < items.length - 1 ? i : -1) * (width * MODIFIER) }))
+  const [springs, api] = useSprings(items.length, i => ({ x: (i < items.length - 1 ? i : -1) * width }))
   const prev = useRef([0, 1])
   const target = useRef()
 
@@ -34,7 +37,7 @@ export function Slider({ items, width = 600, visible = 4, style, children }) {
         const rank = firstVis - (y < 0 ? items.length : 0) + position - firstVisIdx
         const configPos = dy > 0 ? position : items.length - position
         return {
-          x: (-y % (width * items.length)) + (width * MODIFIER) * rank,
+          x: (-y % (width * items.length)) + (width) * rank,
           immediate: dy < 0 ? prevPosition > position : prevPosition < position,
           config: { tension: (1 + items.length - configPos) * 100, friction: 30 + configPos * 40 },
         }

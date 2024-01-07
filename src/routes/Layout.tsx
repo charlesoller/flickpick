@@ -1,4 +1,7 @@
+// Functions
 import { Outlet } from "react-router"
+
+// Components
 import Header from "../components/Header"
 import Background from "../components/Background"
 

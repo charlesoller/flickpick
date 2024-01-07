@@ -1,15 +1,22 @@
-import { SetStateAction, useState } from 'react'
-import { Link } from "react-router-dom"
-import { useSprings, useSpring, useTransition, animated, to as interpolate } from '@react-spring/web'
+//  Functions
+import { useState } from 'react'
+import { useSprings, useSpring, animated, to as interpolate } from '@react-spring/web'
 import { useDrag } from '@use-gesture/react'
 import { genreFromGenreId } from "../utils/helper"
 import { nextRecommendation, averageEmbeddings, inverseEmbedding, adjustSimilarity } from '../utils/similaritySearch'
-import { Movie } from '../utils/types'
 
+//  Components
+import { Link } from "react-router-dom"
 import Toggle from './Toggle'
 
+// Types
+import { Movie } from '../utils/types'
+type StringSet = Set<string>
+type NumberSet = Set<number>
 
+// CSS
 import styles from '../styles.module.css'
+
 
   // These two are just helpers, they curate spring data, values that are later being interpolated into css
   const to = (i: number) => ({
@@ -25,28 +32,25 @@ import styles from '../styles.module.css'
   const trans = (r: number, s: number) =>
     `rotateX(30deg) rotateY(${r / 10}deg) rotateZ(${r}deg) scale(${s})`
 
-  const generateRandomIndex = ( arr: [] ) => {
+  const generateRandomIndex = function ( arr: Array<any> ): number {
     return Math.floor(Math.random() * arr.length);
   }
 
-  type StringSet = Set<string>
-  type NumberSet = Set<number>
-
   export default function Deck({ movies }: { movies: Movie[] }) {
-    const [ left ] = useState<NumberSet>(() => new Set()); //This is a set that flags all of the cards that are flicked out left
-    const [ right ] = useState<NumberSet>(() => new Set()); //This is a set that flags all of the cards that are flicked out right
-    const [ seen ] = useState<StringSet>(() => new Set());
-    const [ likedMovies, setLikedMovies ] = useState([])
-    const [ userPreference, setUserPreference ] = useState([]);
-    const [ currentMovieIndex, setCurrentMovieIndex ] = useState(generateRandomIndex(movies));
-    const [ info, setInfo ] = useState(false)
+    const [ left ] = useState<NumberSet>(() => new Set()); // This is a set that flags all of the index of cards that are flicked out left
+    const [ right ] = useState<NumberSet>(() => new Set()); // This is a set that flags all of the index of cards that are flicked out right
+    const [ seen ] = useState<StringSet>(() => new Set()); // Stores the ID of all cards seen
+    const [ likedMovies, setLikedMovies ] = useState<Movie[]>([]) // Stores the actual movie objects that the user likes to be passed to summary page
+    const [ userPreference, setUserPreference ] = useState<string | number[]>([]) // An updating array of 768 length that represents an embedding of the user's preferences
+    const [ currentMovieIndex, setCurrentMovieIndex ] = useState<number>(generateRandomIndex(movies));  // The index of movie currently shown
+    const [ info, setInfo ] = useState<boolean>(false)  // Used with the toggle so user can opt to diplay more/less info
 
     const [ props, api ] = useSprings(1, i => ({
       ...to(i),
       from: from(i),
     })) //Create a bunch of springs using the helpers above
 
-    const [ fadeInSpringRepeat, fadeInSpringRepeatApi ] = useSpring(
+    const [ fadeInSpringRepeat ] = useSpring(
         () => {
             return (
                 {
@@ -58,7 +62,7 @@ import styles from '../styles.module.css'
             )
         }, [ currentMovieIndex ])
 
-    const [ fadeInRepeat, fadeInRepeatApi ] = useSpring(
+    const [ fadeInRepeat ] = useSpring(
       () => {
           return (
               {
@@ -69,7 +73,7 @@ import styles from '../styles.module.css'
               }
           )
       }, [ currentMovieIndex ])
-
+      // console.log(userPreference)
     // Create a gesture, we're interested in down-state (this means whether or not the element is clicked), delta (current-pos - click-pos), direction and velocity
     const bind = useDrag(({ args: [index], active, movement: [mx], direction: [xDir], velocity: [vx] }) => {
       const trigger = vx > 0.2 //If you flick hard enough, it should trigger the card to fly out
@@ -81,21 +85,21 @@ import styles from '../styles.module.css'
             seen.add(movies[currentMovieIndex].movie_id!)
 
             // This if/else handles the aggregation of likes to create an average embedding representative of the user's taste
-            // FIGURE OUT THESE TYPE ISSUES
+            // There are alot of non-null assertions in this area. It would be good to implement more proper error handling with try/catch to avoid having to add these.
             if(!userPreference.length){ // Only runs when it is the first like
                 setLikedMovies(prevMovies => [...prevMovies, movies[currentMovieIndex]])
 
-                setUserPreference(movies[currentMovieIndex].embedding)
-                nextRecommendation(movies[currentMovieIndex].embedding, seen, movies)
-                    .then((newIndex) => setCurrentMovieIndex(newIndex))
+                setUserPreference(movies[currentMovieIndex].embedding!)
+                nextRecommendation(movies[currentMovieIndex].embedding!, seen, movies)
+                    .then((newIndex) => setCurrentMovieIndex(newIndex!))
             } else {
                 setLikedMovies(prevMovies => [...prevMovies, movies[currentMovieIndex]])
 
-                const newPreference = averageEmbeddings(userPreference, movies[currentMovieIndex].embedding)
+                const newPreference = averageEmbeddings(userPreference, movies[currentMovieIndex].embedding!)
                 setUserPreference(newPreference)
 
                 nextRecommendation(newPreference, seen, movies)   // Passing in newPreference rather than userPreference because the set action is async and could pass in the pre-updated value
-                    .then((newIndex) => setCurrentMovieIndex(newIndex))
+                    .then((newIndex) => setCurrentMovieIndex(newIndex!))
             }
         }
 
@@ -116,7 +120,7 @@ import styles from '../styles.module.css'
                 setUserPreference(adjustedEmbedding)
 
                 nextRecommendation(adjustedEmbedding, seen, movies)
-                    .then((newIndex) => setCurrentMovieIndex(newIndex))
+                    .then((newIndex) => setCurrentMovieIndex(newIndex!))
             } else {
                 setCurrentMovieIndex(generateRandomIndex( movies )) // This is a naive solution because it could return a repeat card (1/1000+ chance)
             }
@@ -153,7 +157,7 @@ import styles from '../styles.module.css'
         {/* <button className="bg-white absolute top-4" >
           Hide Info
         </button> */}
-        <div className="flex justify-between">
+        <section className="flex justify-between">
 
           {/* Additional movie info (toggleable) */}
           { info &&
@@ -197,7 +201,7 @@ import styles from '../styles.module.css'
             </animated.div>
           ))}
 
-        </div>
+        </section>
 
         <section className="flex flex-wrap justify-center align-center gap-3 max-w-screen-sm">
             {movies[currentMovieIndex].genre_ids?.map(genre => {

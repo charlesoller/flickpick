@@ -1,4 +1,8 @@
-export default function Toggle({handleClick}){
+//@ts-nocheck
+// The above is only turned on becuase of the div which receives an onClick through props. The onClick is expecting a native event handler from what I can tell
+// but instead received a function. This is fairly standard in React as far as I'm aware and I couldn't find a good solution to this online though I'm sure there is.
+
+export default function Toggle({handleClick}: {handleClick: Function}){
     return (
         <label className="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" value="" className="sr-only peer" />

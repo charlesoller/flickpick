@@ -1,5 +1,3 @@
-import { SetStateAction } from "react";
-
 export interface Movie {
     adult?: boolean;
     backdrop_path?: string;
@@ -15,17 +13,18 @@ export interface Movie {
     video?: boolean;
     vote_average?: number;
     vote_count?: number;
-    embedding: string | SetStateAction<never[]>;
+    embedding?: string | number[];
 }
 
 export interface FormattedMovie {
-    id: number;
+    id: string;
     description: string
 }
 
-// Currently not using
-// export interface EmbeddingData {
-//     movie_id: number;
-//     content: string;
-//     embedding: number[];
-// }
+export interface Recommendation {
+    id: string,
+    content: string,
+    similarity: number
+}
+
+export type EmbeddingData = Array<number> | string

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /*
 *   Stripe WebGl Gradient Animation
 *   All Credits to Stripe.com

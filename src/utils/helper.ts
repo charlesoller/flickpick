@@ -1,5 +1,5 @@
 import { supabase } from "../utils/clients"
-import { Movie } from "./types"
+import { Movie, FormattedMovie } from "./types"
 
 export const genreFromGenreId = (id: number): string => {
     if(id === 28) return "Action"
@@ -22,12 +22,11 @@ export const genreFromGenreId = (id: number): string => {
     if(id === 10752) return "War"
     if(id === 37) return "Western"
 
-    //Consider throwing error here?
+    //Consider throwing error here? I ended up handling this checking in client if it's an empty string and not displaying if so.
     return ""
 }
 
-export const parseMovieInfo = (movie: Movie): {id: string, description: string} => {
-    // console.log(movie)
+export const parseMovieInfo = (movie: Movie): FormattedMovie => {
     const { movie_id, genre_ids, overview, release_date, title } = movie
 
     const genreNames = genre_ids!.map(id => genreFromGenreId(id)).join(", ")
@@ -44,15 +43,13 @@ Description: ${overview}`
     return output
 }
 
-
-
 //This only runs if the movie is not already in Supabase
 export const addMovieToSupabase = async (movie: Movie): Promise<undefined> => {
-    const { id, genre_ids, overview, release_date, title, poster_path } = movie
+    const { movie_id, genre_ids, overview, release_date, title, poster_path } = movie
     const { error } = await supabase
         .from("movies")
         .insert({
-            movie_id: id,
+            movie_id,
             genre_ids,
             overview,
             release_date,

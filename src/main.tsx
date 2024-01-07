@@ -1,4 +1,5 @@
-import React from 'react'
+// @ts-ignore
+
 import ReactDOM from 'react-dom/client'
 import App from './routes/App.tsx'
 import Summary from './routes/Summary.tsx'
@@ -29,6 +30,9 @@ const router = createBrowserRouter([
       {
         path: "/about",
         element: <About />
+      }, {
+        path: "*",
+        element: <ErrorPage />
       }
     ]
   }

@@ -1,44 +1,42 @@
-import { update } from "@react-spring/web";
-import { supabase } from "./clients";
-import { fetchMovie } from "./fetch";
+import { supabase } from "./clients.ts"
+import { Movie, Recommendation, EmbeddingData } from "./types.ts"
 
-export const nextRecommendation = async (embeddedQuery: Array, seen: Set<string>, movies) => {
-    // console.log("USER LIKE: ", embeddedQuery)
+export const nextRecommendation = async (embeddedQuery: EmbeddingData, seen: Set<string>, movies: Array<Movie>) => {
+    // Calls cosine search function from Supabase Postgre
+    // A high match count is recommended here even though only one will be shown to the user
+    // This is becuase of the filter down below, all of the closest matches will be returned, even if they've already been seen
+    // A match count of something like 10 will likely run out fairly soon if the user keeps swiping as all of the movies will have already
+    // been seen by the user. Because the movies seen and the search function are stored locally and in Supabase respectively, the match_embeddings
+    // function would have to be refactored to take in the seen parameter to avoid this.
     const { data } = await supabase.rpc("match_embeddings", {
         query_embedding: embeddedQuery,
         match_threshold: 0,
         match_count: 100
     })
 
-    const options = data.filter((item: {}) => !seen.has(item.id))
-    // console.log("OPTIONS", options)      //IMPORTANT CONSOLE LOG FOR DEBUG
+    const options = data.filter((item: Recommendation) => !seen.has(item.id))
+    // console.log("OPTIONS", options)      //IMPORTANT CONSOLE LOG FOR DEBUG -- this will return a list of all options after being filtered, useful in tracking if a user is running out of reccomendations
     const match = options[0]
-    // console.log(match)
-    // const matchInfo = await fetchMovie(match.id) //Only for testing purposes
 
     // This returns the index of the match for use in Deck component
     for(let i = 0; i < movies.length; i++){
         if(movies[i].movie_id === match.id){
-            // console.log(match)
             return i;
         }
     }
 
     //Throw error here?
+    throw new Error("No movies found.")
     return null
 }
 
-// export const userDislike = (userPreference, seen, movies) => {
-
-// }
-
 // ADD THESE TYPES: USER PREF CAN BE STRING OR ARRAY
-export const averageEmbeddings = (firstEmbedding, secondEmbedding) => {
+export const averageEmbeddings = (firstEmbedding: EmbeddingData, secondEmbedding: EmbeddingData) => {
     // Embeddings passed in MUST be the EXACT same number of dimensions
 
 
     // This will only be a string if it's fetched directly from Supabase, then will have to be parsed
-    // Once it's flowing, it will be functioning as a 768D array
+    // Once it's flowing, it will be functioning as a 768D array (only with current model)
     if(typeof firstEmbedding === "string"){
         firstEmbedding = JSON.parse(firstEmbedding)
     }
@@ -48,20 +46,25 @@ export const averageEmbeddings = (firstEmbedding, secondEmbedding) => {
 
     const averageEmbedding = new Array(768)    //In this case, the model is outputting vectors of 768 dimensions
     for(let i = 0; i < firstEmbedding.length; i++){
+        //@ts-ignore
+        // This was giving the error that the embeddings couldn't be added like this because they have string in their type.
+        // While this is true, they are parsed into an array if needed above, so they will ALWAYS be in an array format here.
+        // A stronger solution might be to make sure to parse them before being passed here, but I think that that makes this function
+        // more error prone.
         averageEmbedding[i] = (firstEmbedding[i] + secondEmbedding[i]) / 2
     }
 
     return averageEmbedding
 }
 
-export const inverseEmbedding = (embedding) => {
+export const inverseEmbedding = (embedding: EmbeddingData) => {
     if(typeof embedding === "string"){
         embedding = JSON.parse(embedding)
     }
 
-    // console.log("BEFORE: ", embedding)
+    //@ts-ignore
+    //This will always be an array because it is parsed above.
     const inverse = embedding.map(item => item *= -1)
-    // console.log("AFTER: ", inverse)
     return inverse
 }
 
@@ -74,7 +77,7 @@ export const inverseEmbedding = (embedding) => {
 // and so on...
 // Note that this is done by repeatedly averaging two embeddings, so I'm unsure of the exact preciseness of this approach.
 // This also gets O(n) more costly with each increase of scale
-export const adjustSimilarity = (targetEmbedding, modifierEmbedding, scale) => {
+export const adjustSimilarity = (targetEmbedding: EmbeddingData, modifierEmbedding: EmbeddingData, scale: number) => {
     let resultEmbedding = modifierEmbedding;
     for (let i = 0; i < scale; i++){
         resultEmbedding = averageEmbeddings(resultEmbedding, targetEmbedding)

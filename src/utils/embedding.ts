@@ -15,11 +15,13 @@ export const embed = async(str: string) => {
 
         inputs: str
     })
-    // console.log("DIRECTLY IN THE EMBED FUNCTION", embedding.length)
+
     return embedding
 }
 
-// Currently not in use
+// Not currently in use. I originally was going to split the description of each movie to get a better accuracy in matching, but this would require then averaging the embeddings
+// back together to get something that represented the entire movie. The concept of averaging embeddings is still shaky to me and I haven't been able to find a resource
+// that gives a definitive answer on the best way to do it. In other implementations, I simply took the average of dimension of two arrays divided by two.
 export const splitText = async(text: string) => {
     const splitter = new RecursiveCharacterTextSplitter({
         chunkSize: 200,
@@ -30,8 +32,7 @@ export const splitText = async(text: string) => {
     return output;
 }
 
-const storeEmbedding = async(id: number, embedding: FeatureExtractionOutput): Promise<undefined> => {
-    // console.log("ABOUT TO BE STORED", embedding.length)
+const storeEmbedding = async(id: string, embedding: FeatureExtractionOutput): Promise<undefined> => {
     const { error } = await supabase
         .from("movies")
         .update({ embedding: embedding })
@@ -73,7 +74,6 @@ export const embedAndStoreDocument = async(document: FormattedMovie): Promise<un
     // }
 
     const embeddingResponse = await embed(document.description)
-    // console.log("EMBEDDING RESPONSE", embeddingResponse.length)
     storeEmbedding(document.id, embeddingResponse)
 
     return
