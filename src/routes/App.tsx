@@ -38,7 +38,7 @@ export default function App() {
 
   return (
     <main>
-      <section className={`flex fill center ${styles.container}`}>
+      <section className={`flex center ${styles.container} h-screen`}>
         {
           movies.length ?
           <Deck movies={movies}/>

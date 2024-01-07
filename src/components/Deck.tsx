@@ -153,12 +153,10 @@ import styles from '../styles.module.css'
     })
     // Now we're just mapping the animated values to our view, that's it. This component only renders once.
     return (
-      <main className="flex flex-col absolute top-16 sm:top-8">
-        {/* <button className="bg-white absolute top-4" >
-          Hide Info
-        </button> */}
-        <section className="flex justify-between">
+      <main className="flex flex-col mb-20 lg:mb-28">
 
+
+        <section className="flex justify-between">
           {/* Additional movie info (toggleable) */}
           { info &&
             <>
@@ -187,7 +185,6 @@ import styles from '../styles.module.css'
             </>
           }
 
-
           {props.map(({ x, y, rot, scale }, i) => (
             <animated.div className={styles.deck} key={i} style={{ x, y }}>
               {/* This is the card itself, we're binding our gesture to it (and inject its index so we know which is which) */}
@@ -200,7 +197,6 @@ import styles from '../styles.module.css'
               />
             </animated.div>
           ))}
-
         </section>
 
         <section className="flex flex-wrap justify-center align-center gap-3 max-w-screen-sm">
