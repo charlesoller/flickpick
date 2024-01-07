@@ -6,6 +6,9 @@ export default {
   ],
   theme: {
     extend: {},
+    screens: {
+      "height-sm": { "raw": "(max-height: 700px)"}
+    }
   },
   plugins: [],
 }

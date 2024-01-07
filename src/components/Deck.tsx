@@ -199,13 +199,13 @@ import styles from '../styles.module.css'
           ))}
         </section>
 
-        <section className="flex flex-wrap justify-center align-center gap-3 max-w-screen-sm">
+        <section className="flex flex-wrap justify-center align-center gap-3 max-w-screen-sm height-sm:hidden">
             {movies[currentMovieIndex].genre_ids?.map(genre => {
                 const genreName = genreFromGenreId(genre)
                 return genreName !== "" && <animated.div key={genre} className="text-white/80 text-xs py-3 px-6 m-0 rounded-full bg-gradient-to-t from-gray-700/90 to-gray-800/20 drop-shadow-sm" style={fadeInSpringRepeat}>{genreName}</animated.div>
             })}
         </section>
-        <div className="hidden sm:block fixed bottom-24">
+        <div className="hidden sm:block fixed bottom-24 height-sm:hidden">
           <Toggle handleClick={() => setInfo(prevInfo => !prevInfo)} />
         </div>
         <Link className="text-white/90 text-xl py-4 px-8 fixed bottom-7 rounded-full bg-slate-700/75 drop-shadow-sm hover:bg-green-600/75 hover:scale-110 transition ease-in-out duration-300"
